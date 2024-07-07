@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Cancer Detection - Model 2</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        #results {
+            display: none;
+            margin-top: 20px;
+        }
+        .alert {
+            display: none;
+            margin-top: 20px;
+        }
+        #error-message {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Skin Cancer Detection - Model2</h1>
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Upload an Image:</label>
+                        <input type="file" class="form-control-file" id="file" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Predict</button>
+                </form>
+            </div>
+        </div>
+        <div id="results" class="text-center">
+            <h3>Prediction Results</h3>
+            <img id="uploaded-img" src="#" alt="Uploaded Image" class="img-fluid">
+            <p id="prediction" class="lead"></p>
+            <p id="confidence" class="lead"></p>
+        </div>
+        <div id="error-message" class="alert alert-danger"></div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var formData = new FormData();
+            var fileField = document.getElementById('file');
+
+            formData.append('file', fileField.files[0]);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResults(data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An unexpected error occurred.');
+            });
+        });
+
+        function showResults(data) {
+            var results = document.getElementById('results');
+            var uploadedImg = document.getElementById('uploaded-img');
+            var prediction = document.getElementById('prediction');
+            var confidence = document.getElementById('confidence');
+            var errorMessage = document.getElementById('error-message');
+
+            uploadedImg.src = URL.createObjectURL(document.getElementById('file').files[0]);
+            prediction.textContent = `Prediction: ${data.class}`;
+            confidence.textContent = `Confidence: ${(data.confidence * 100).toFixed(2)}%`;
+
+            results.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function showError(message) {
+            var errorMessage = document.getElementById('error-message');
+            var results = document.getElementById('results');
+
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            results.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
